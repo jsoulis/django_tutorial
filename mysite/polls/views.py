@@ -1,13 +1,39 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from django.http import Http404
-from .models import Question, Choice
 from django.template import loader
 from django.urls import reverse
+from django.views import generic
+
+from .models import Question, Choice
+
+
+#we will now use django generic views to implement views
+
+class IndexView(generic.ListView):
+    template_name = 'polls/index.html'
+    context_object_name = 'latest_question_list'
+
+    def get_queryset(self):
+        """Return the last five published questions."""
+        return Question.objects.order_by('-pub_date')[:5]
+
+#using generic detailview
+class DetailView(generic.DetailView):
+    #each generic view needs to know what model it will be acting upon, which is provided by 'model' attribute
+    model = Question
+    
+    template_name = 'polls/detail.html'
+
+
+class ResultsView(generic.DetailView):
+    model = Question
+    template_name = 'polls/results.html'
+
+
 # Create your views here.
 # each of these functions is a view
-
-def index(request):
+""" def index(request):
     latest_question_list = Question.objects.order_by('-pub_date')[:5]
     #template = loader.get_template('polls/index.html')
     context = {'latest_question_list': latest_question_list}
@@ -16,11 +42,11 @@ def index(request):
     #return HttpResponse(template.render(context,request))
 
 def detail(request, question_id):   
-    """ try:
-        question = Question.objects.get(pk=question_id)
-    except Question.DoesNotExist:
-        raise Http404("Question does not exist")
-    return render(request, 'polls/detail.html', {'question':question}) """
+    #  try:
+    #     question = Question.objects.get(pk=question_id)
+    # except Question.DoesNotExist:
+    #     raise Http404("Question does not exist")
+    # return render(request, 'polls/detail.html', {'question':question})
     #it is common to use get() and raise Http404 if the object doesnt exist. Django provides a shortcut.
     question = get_object_or_404(Question, pk=question_id) #takes Django model as first arg, and arbitrary number of keyword arguments which it passes to get() function of the model's manager. It raises Http404 if it doesnt exist
     return render(request, 'polls/detail.html', {'question': question})
@@ -28,7 +54,7 @@ def detail(request, question_id):
 def results(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
     return render(request, 'polls/results.html', {'question': question})
-
+ """
 def vote(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
     try:
